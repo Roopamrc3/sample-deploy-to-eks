@@ -71,6 +71,7 @@ jobs:
             # Replace the placeholders in the manifest with the intended values.
             # This is to avoid hardcoding the image name in the manifest, to make this
             # demo project more portable.
+            cd deployment
             BUILD_DATE=$(date '+%Y%m%d%H%M%S')
             cat deployment/app-deployment.yaml.template |\
                sed "s|DOCKER_IMAGE_NAME|<< parameters.docker-image-name >>|\
@@ -97,5 +98,5 @@ workflows:
           aws-region: $AWS_DEFAULT_REGION
           docker-image-name: "kevinluu10/node-web-app:0.1.${CIRCLE_BUILD_NUM}"
           version-info: "${CIRCLE_BUILD_NUM}"
-          # requires:
-          #   - create-eks-cluster
+          requires:
+            - build-docker-image
