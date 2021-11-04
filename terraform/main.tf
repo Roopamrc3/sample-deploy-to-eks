@@ -58,8 +58,8 @@ module "eks" {
 
   worker_groups = [
     {
-      instance_type = "t3.large"
-      asg_max_size  = 1
+      instance_type = "t3.medium"
+      asg_max_size  = 2
     }
   ]
 }

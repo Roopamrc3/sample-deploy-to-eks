@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   aws-eks: circleci/aws-eks@0.2.0
-  aws-ecr: circleci/aws-ecr@3.1.0
   kubernetes: circleci/kubernetes@0.3.0
   
 jobs:
@@ -90,8 +89,10 @@ jobs:
 workflows:
   deployment:
     jobs:
-      # - create-eks-cluster
-      - build-docker-image
+      - create-eks-cluster
+      - build-docker-image:
+          requires:
+            - create-eks-cluster
       - deploy-application:
           cluster-name: eks-udacity-capstone
           aws-region: $AWS_DEFAULT_REGION
