@@ -9,10 +9,12 @@ jobs:
       - run: 
           name: Deploy EKS via terraform
           command: |
-            terraform -chdir=terraform init -reconfigure
-            terraform -chdir=terraform validate
-            terraform -chdir=terraform plan -out "planfile"
-            terraform -chdir=terraform apply -input=false "planfile"
+            cd terraform
+            terraform --version
+            terraform init -reconfigure
+            terraform validate
+            terraform plan -out "planfile"
+            terraform apply -input=false "planfile"
 
 workflows:
   deployment:
