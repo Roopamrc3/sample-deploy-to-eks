@@ -32,7 +32,7 @@ jobs:
             terraform --version
             terraform init -reconfigure
             terraform plan -destroy -out=tfdestroy
-            terraform apply tfdestroy -auto-approve
+            terraform apply -input=false "tfdestroy"
 
   build-docker-image:
     docker:
