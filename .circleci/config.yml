@@ -21,16 +21,83 @@ jobs:
             terraform plan -out "planfile"
             terraform apply -input=false "planfile"
 
+  build-docker-image:
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Setup env
+          command: |
+            echo 'export TAG=0.1.${CIRCLE_BUILD_NUM}' >> $BASH_ENV
+            echo 'export IMAGE_NAME=node-web-app' >> $BASH_ENV 
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --no-cache py-pip=9.0.0-r1
+            pip install docker-compose==1.12.0 
+      - run:
+          name: Build and push Docker image
+          command: |
+            cd src
+            docker build . -t $IMAGE_NAME:$TAG
+            echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
+            docker push $DOCKER_LOGIN/$IMAGE_NAME:$TAG
+
+  deploy-application:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+      docker-image-name:
+        description: |
+          Name of the docker image to be deployed
+        type: string
+      version-info:
+        description: |
+          App version information
+        type: string
+      aws-region:
+        description: |
+          AWS region
+        type: string
+        default: "us-east-1"
+    steps:
+      - checkout
+      - run:
+          name: Create deployment manifest
+          command: |
+            # Replace the placeholders in the manifest with the intended values.
+            # This is to avoid hardcoding the image name in the manifest, to make this
+            # demo project more portable.
+            BUILD_DATE=$(date '+%Y%m%d%H%M%S')
+            cat deployment/app-deployment.yaml.template |\
+               sed "s|DOCKER_IMAGE_NAME|<< parameters.docker-image-name >>|\
+                g;s|BUILD_DATE_VALUE|$BUILD_DATE|g;s|VERSION_INFO_VALUE|\
+                << parameters.version-info >>|g" > deployment/demo-app-deployment.yaml
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+          aws-region: << parameters.aws-region >>
+      - kubernetes/create-or-update-resource:
+          resource-file-path: "deployment/app-deployment.yaml"
+          get-rollout-status: true
+          resource-name: deployment/demoapp
+      - kubernetes/create-or-update-resource:
+          resource-file-path: "deployment/app-service.yaml"
+
 workflows:
   deployment:
     jobs:
-      - create-eks-cluster
-      # - create-service:
-      #     cluster-name: eks-demo-deployment
-      # - aws-eks/update-container-image:
-      #     cluster-name: eks-demo-deployment
-      #     container-image-updates: 'blue=andresaaap/testblueimage:latest'
-      #     record: true
+      # - create-eks-cluster
+      - build-docker-image
+      # - deploy-application:
+      #     cluster-name: eks-udacity-capstone
+      #     aws-region: $AWS_DEFAULT_REGION
+      #     docker-image-name: "kevinluu10/house-prediction:latest"
+      #     version-info: "${CIRCLE_SHA1}"
       #     requires:
-      #       - create-deployment
-      #     resource-name: deployment/blue
+      #       - create-eks-cluster
