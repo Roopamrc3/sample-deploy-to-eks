@@ -1,11 +1,5 @@
-version: 2.1
-
-orbs:
-  aws-eks: circleci/aws-eks@x.y
-  kubernetes: circleci/kubernetes@0.4.0
-
 jobs:
-  create-deployment:
+  test-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
@@ -13,33 +7,27 @@ jobs:
           Name of the EKS cluster
         type: string
     steps:
-      - checkout
+      - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
-          install-kubectl: true
-      - kubernetes/create-or-update-resource:
-          resource-file-path: "tests/nginx-deployment/deployment.yaml"
-          resource-name: "deployment/nginx-deployment"
-          get-rollout-status: true
-          show-kubectl-command: true
-
+      - run:
+          command: |
+            kubectl get services && sleep 300
+          name: Test cluster
+orbs:
+  aws-eks: circleci/aws-eks@0.2.3
+  kubernetes: circleci/kubernetes@0.4.0
+version: 2.1
 workflows:
   deployment:
     jobs:
       - aws-eks/create-cluster:
-          cluster-name: eks-demo-deployment
-      - create-deployment:
-          cluster-name: eks-demo-deployment
+          cluster-name: my-eks-demo
+      - test-cluster:
+          cluster-name: my-eks-demo
           requires:
             - aws-eks/create-cluster
-      - aws-eks/update-container-image:
-          cluster-name: eks-demo-deployment
-          resource-name: "deployment/nginx-deployment"
-          container-image-updates: "nginx=nginx:1.9.1"
-          record: true
-          requires:
-            - create-deployment
       - aws-eks/delete-cluster:
-          cluster-name: eks-demo-deployment
+          cluster-name: my-eks-demo
           requires:
-              - aws-eks/update-container-image
+            - test-cluster
