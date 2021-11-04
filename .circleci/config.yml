@@ -1,10 +1,23 @@
 version: 2.1
+
+orbs:
+  aws-eks: circleci/aws-eks@0.2.0
+  aws-ecr: circleci/aws-ecr@3.1.0
+  kubernetes: circleci/kubernetes@0.3.0
   
 jobs:
   create-eks-cluster:
     docker:
       - image: swheat320/docker-node-py-tf:1.0
     steps:
+      - run:
+          name: Check if EKS cluster exists
+          command: |
+            EXIST=$(aws eks describe-cluster --name eks-udacity-capstone --output text)
+            if [[ $EXIST ]]
+            then
+              exit 0
+            fi
       - checkout
       - run: 
           name: Deploy EKS via terraform
@@ -20,4 +33,12 @@ workflows:
   deployment:
     jobs:
       - create-eks-cluster
-      
+      # - create-service:
+      #     cluster-name: eks-demo-deployment
+      # - aws-eks/update-container-image:
+      #     cluster-name: eks-demo-deployment
+      #     container-image-updates: 'blue=andresaaap/testblueimage:latest'
+      #     record: true
+      #     requires:
+      #       - create-deployment
+      #     resource-name: deployment/blue
