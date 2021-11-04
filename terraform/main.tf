@@ -1,3 +1,11 @@
+terraform {
+  backend "s3" {
+    bucket = "udacity-capstone-110421"
+    key    = "path/to/my/key"
+    region = "udacity-capstone.tfstate"
+  }
+}
+
 provider "aws" {
   region = "us-east-1"
 }
@@ -10,7 +18,6 @@ locals {
   cluster_name = "eks-udacity-capstone"
 }
 
-# Create VPC to for the EKS cluster
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 2.48"
@@ -40,7 +47,6 @@ module "vpc" {
   }
 }
 
-# Create EKS Cluster
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 12.2"
