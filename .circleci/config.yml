@@ -10,17 +10,9 @@ jobs:
     docker:
       - image: swheat320/docker-node-py-tf:1.0
     steps:
-      - run:
-          name: Check if EKS cluster exists
-          command: |
-            EXIST=$(aws eks describe-cluster --name eks-udacity-capstone --output text)
-            if [[ $EXIST ]]
-            then
-              exit 0
-            fi
       - checkout
       - run: 
-          name: Deploy EKS via terraform
+          name: Deploy EKS Cluster
           command: |
             cd terraform
             terraform --version
