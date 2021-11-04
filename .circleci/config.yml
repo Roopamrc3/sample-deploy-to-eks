@@ -91,13 +91,11 @@ workflows:
   deployment:
     jobs:
       # - create-eks-cluster
-      # - build-docker-image
+      - build-docker-image
       - deploy-application:
           cluster-name: eks-udacity-capstone
           aws-region: $AWS_DEFAULT_REGION
-          docker-image-name: "kevinluu10/node-web-app:0.1.36"
-          version-info: "0.1.36"
-          # docker-image-name: "kevinluu10/node-web-app:0.1.${CIRCLE_BUILD_NUM}"
-          # version-info: "${CIRCLE_BUILD_NUM}"
-          # requires:
-          #   - build-docker-image
+          docker-image-name: "kevinluu10/node-web-app:0.1.${CIRCLE_BUILD_NUM}"
+          version-info: "${CIRCLE_BUILD_NUM}"
+          requires:
+            - build-docker-image
