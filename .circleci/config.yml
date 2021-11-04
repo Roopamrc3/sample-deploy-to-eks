@@ -31,7 +31,8 @@ jobs:
             cd terraform
             terraform --version
             terraform init -reconfigure
-            terraform destroy
+            terraform plan -destroy -out=tfdestroy
+            terraform apply tfdestroy -auto-approve
 
   build-docker-image:
     docker:
