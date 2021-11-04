@@ -1,0 +1,77 @@
+version: 2.1
+
+orbs:
+  aws-eks: circleci/aws-eks@1.1.0
+  kubernetes: circleci/kubernetes@0.4.0
+
+commands:
+  restore_backend_cache_cmd:
+    steps:
+      - restore_cache:
+          keys:
+            - backend-{{ .Environment.CIRCLE_SHA1 }}
+  save_backend_cache_cmd:
+    steps:
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-{{ .Environment.CIRCLE_SHA1 }}
+  restore_frontend_cache_cmd:
+    steps:
+      - restore_cache:
+          keys:
+            - frontend-{{ .Environment.CIRCLE_SHA1 }}
+  save_frontend_cache_cmd:
+    steps:
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-{{ .Environment.CIRCLE_SHA1 }}
+
+jobs:
+  create-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: deployment.json
+          resource-name: deployment/blue
+  create-service:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          resource-file-path: service.json
+          resource-name: service/bluegreenlb
+
+workflows:
+  deployment:
+    jobs:
+      - create-service:
+          cluster-name: udacity-capstone
+      - create-deployment:
+          cluster-name: udacity-capstone
+          requires:
+            - create-service
+      - aws-eks/update-container-image:
+          cluster-name: udacity-capstone
+          container-image-updates: 'blue=andresaaap/testblueimage:latest'
+          record: true
+          requires:
+            - create-deployment
+          resource-name: deployment/blue
