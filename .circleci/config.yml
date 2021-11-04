@@ -39,7 +39,11 @@ jobs:
             export IMAGE_NAME=node-web-app:0.1.${CIRCLE_BUILD_NUM}
             cd src
             docker build -t $IMAGE_NAME .
-            docker tag $IMAGE_NAME kevinluu/$IMAGE_NAME
+
+            docker image ls
+
+            docker tag $IMAGE_NAME $DOCKER_LOGIN/$IMAGE_NAME
+
             docker login -u $DOCKER_LOGIN -p $DOCKER_PWD
             docker push $DOCKER_LOGIN/$IMAGE_NAME
 
