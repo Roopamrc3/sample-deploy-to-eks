@@ -42,7 +42,7 @@ jobs:
             docker login -u $DOCKER_LOGIN -p $DOCKER_PWD
 
             docker image ls
-            docker push $DOCKER_LOGIN/$IMAGE_NAME
+            docker push $DOCKER_LOGIN/node-web-app
 
   deploy-application:
     executor: aws-eks/python3
