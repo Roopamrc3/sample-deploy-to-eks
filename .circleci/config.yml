@@ -97,5 +97,5 @@ workflows:
           aws-region: $AWS_DEFAULT_REGION
           docker-image-name: "kevinluu10/node-web-app:0.1.${CIRCLE_BUILD_NUM}"
           version-info: "${CIRCLE_BUILD_NUM}"
-          requires:
-            - create-eks-cluster
+          # requires:
+          #   - create-eks-cluster
