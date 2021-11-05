@@ -103,7 +103,7 @@ jobs:
 workflows:
   deployment:
     jobs:
-      # - create-eks-cluster
+      - create-eks-cluster
       # - build-docker-image:
       #     requires:
       #       - create-eks-cluster
@@ -114,4 +114,4 @@ workflows:
       #     version-info: "${CIRCLE_BUILD_NUM}"
       #     requires:
       #       - build-docker-image
-      - destroy-eks-cluster
+      # - destroy-eks-cluster

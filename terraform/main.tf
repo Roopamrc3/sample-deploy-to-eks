@@ -59,7 +59,7 @@ module "eks" {
   worker_groups = [
     {
       instance_type = "t3.medium"
-      asg_max_size  = 2
+      asg_max_size  = 1
     }
   ]
 }
