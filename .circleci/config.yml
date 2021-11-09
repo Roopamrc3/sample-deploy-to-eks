@@ -1,36 +1,82 @@
 version: 2.1
 
 orbs:
-  aws-eks: circleci/aws-eks@1.1.0
-  kubernetes: circleci/kubernetes@0.12.0
+  aws-eks: circleci/aws-eks@0.2
+  helm: circleci/helm@1.0
 
 jobs:
-  test-cluster:
-    executor: aws-eks/python3
+
+  delete-helm-release:
+    executor: aws-eks/python
     parameters:
       cluster-name:
-        description: |
-          Name of the EKS cluster
+        description: Cluster name
         type: string
     steps:
-      - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
+      - helm/install-helm-client:
+          version: v2.16.9
       - run:
           command: |
-            kubectl get services
-          name: Test cluster
+            helm repo add stable http://cncf.gitlab.io/stable
+          name: Add cncf stable repo
+      - helm/delete-helm-release:
+          purge: true
+          release-name: prometheus-release
+          timeout: 600
+
+  install-helm-chart:
+    executor: aws-eks/python
+    parameters:
+      cluster-name:
+        description: Cluster name
+        type: string
+    steps:
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+      - helm/install-helm-client:
+          version: v2.16.9
+      - run:
+          command: |
+            helm repo add stable http://cncf.gitlab.io/stable
+          name: Add cncf stable repo
+      - helm/install-helm-chart:
+          chart: stable/prometheus
+          release-name: prometheus-release
+          
+  install-helm-on-cluster:
+    executor: aws-eks/python
+    parameters:
+      cluster-name:
+        description: Cluster name
+        type: string
+    steps:
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - helm/install-helm-on-cluster:
+          enable-cluster-wide-admin-access: true
 
 workflows:
   deployment:
     jobs:
       - aws-eks/create-cluster:
-          cluster-name: my-eks-demo
-      - test-cluster:
-          cluster-name: my-eks-demo
+          cluster-name: test-cluster
+      - install-helm-on-cluster:
+          cluster-name: test-cluster
           requires:
             - aws-eks/create-cluster
-      - aws-eks/delete-cluster:
-          cluster-name: my-eks-demo
+      - install-helm-chart:
+          cluster-name: test-cluster
           requires:
-            - test-cluster
+            - install-helm-on-cluster
+      - delete-helm-release:
+          cluster-name: test-cluster
+          requires:
+            - install-helm-chart
+      - aws-eks/delete-cluster:
+          cluster-name: test-cluster
+          requires:
+            - delete-helm-release
+          wait: true
