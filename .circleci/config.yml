@@ -24,7 +24,7 @@ jobs:
       - helm/delete-helm-release:
           purge: true
           release-name: prometheus-release
-          timeout: 600
+          timeout: '600'
 
   install-helm-chart:
     executor: aws-eks/python
