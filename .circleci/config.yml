@@ -6,19 +6,6 @@ orbs:
   kubernetes: circleci/kubernetes@0.3.0
 
 jobs:
-  build:
-    machine: true
-    steps:
-      - checkout
-      - run: 
-          name: Build and push docker image
-          command: |
-            export IMAGE_NAME=node-web-app:0.1.${CIRCLE_BUILD_NUM}
-            echo "$DOCKER_PWD" | docker login --username $DOCKER_LOGIN --password-stdin
-            cd src
-            docker build -t $DOCKER_LOGIN/$IMAGE_NAME .
-            docker push $DOCKER_LOGIN/$IMAGE_NAME
-
   deploy-application:
     executor: aws-eks/python3
     parameters:
@@ -63,7 +50,14 @@ jobs:
 workflows:
   deployment:
     jobs:
-      - build         
+      - aws-ecr/build_and_push_image:
+          name: build-and-push-image
+          account-url: 297087064642.dkr.ecr.us-east-1.amazonaws.com
+          region: us-east-1
+          repo: node-web-app
+          dockerfile: ~/project/src/Dockerfile
+          path: ~/project/src
+          tag: "0.1.${CIRCLE_BUILD_NUM}"   
       - deploy-application:
           cluster-name: EKS-Capstone
           aws-region: us-east-1
