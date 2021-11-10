@@ -19,7 +19,7 @@ spec:
         image: DOCKER_IMAGE_NAME
         resources:
           requests:
-            cpu: 200m
-            memory: 200Mi
+            cpu: 100m
+            memory: 100Mi
         ports:
         - containerPort: 8080
