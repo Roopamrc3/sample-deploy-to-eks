@@ -1,12 +1,9 @@
-const express = require('express');
+const http = require('http');
 
-const PORT = 8080;
-const HOST = '0.0.0.0';
+const requestListener = function (req, res) {
+  res.writeHead(200);
+  res.end('Hello, World v1');
+};
 
-const app = express();
-app.get('/', (req, res) => {
-  res.send('Hello World v2');
-});
-
-app.listen(PORT, HOST);
-console.log(`Running on http://${HOST}:${PORT}`);
+const server = http.createServer(requestListener);
+server.listen(8080);
