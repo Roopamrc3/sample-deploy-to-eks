@@ -53,7 +53,7 @@ workflows:
       - aws-ecr/build_and_push_image:
           name: build-and-push-image
           account-url: 297087064642.dkr.ecr.us-east-1.amazonaws.com
-          region: $AWS_DEFAULT_REGION
+          region: AWS_DEFAULT_REGION
           repo: node-web-app
           dockerfile: ~/project/src/Dockerfile
           path: ~/project/src
