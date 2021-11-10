@@ -1,9 +1,8 @@
 const http = require('http');
-const notUsed = null;
 
 const requestListener = function (req, res) {
   res.writeHead(200);
-  res.end('Hello, World v2');
+  res.end('Hello, Blue!');
 };
 
 const server = http.createServer(requestListener);
