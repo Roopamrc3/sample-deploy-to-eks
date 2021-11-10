@@ -1,82 +1,57 @@
 version: 2.1
 
 orbs:
-  aws-eks: circleci/aws-eks@0.2
-  helm: circleci/helm@1.0
+  aws-eks: circleci/aws-eks@0.2.0
+  aws-ecr: circleci/aws-ecr@3.1.0
+  kubernetes: circleci/kubernetes@0.3.0
 
 jobs:
-
-  delete-helm-release:
-    executor: aws-eks/python
+  deploy-application:
+    executor: aws-eks/python3
     parameters:
       cluster-name:
-        description: Cluster name
+        description: |
+          Name of the EKS cluster
         type: string
+      docker-image-name:
+        description: |
+          Name of the docker image to be deployed
+        type: string
+      version-info:
+        description: |
+          App version information
+        type: string
+      aws-region:
+        description: |
+          AWS region
+        type: string
+        default: ""
     steps:
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-      - helm/install-helm-client:
-          version: v2.16.9
+      - checkout
       - run:
+          name: Create deployment manifest
           command: |
-            helm repo add stable http://cncf.gitlab.io/stable
-          name: Add cncf stable repo
-      - helm/delete-helm-release:
-          purge: true
-          release-name: prometheus-release
-          timeout: '600'
-
-  install-helm-chart:
-    executor: aws-eks/python
-    parameters:
-      cluster-name:
-        description: Cluster name
-        type: string
-    steps:
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-      - helm/install-helm-client:
-          version: v2.16.9
-      - run:
-          command: |
-            helm repo add stable http://cncf.gitlab.io/stable
-          name: Add cncf stable repo
-      - helm/install-helm-chart:
-          chart: stable/prometheus
-          release-name: prometheus-release
-          
-  install-helm-on-cluster:
-    executor: aws-eks/python
-    parameters:
-      cluster-name:
-        description: Cluster name
-        type: string
-    steps:
+            BUILD_DATE=$(date '+%Y%m%d%H%M%S')
+            cat deployment/app-deployment.yaml.template | \
+               sed "s|DOCKER_IMAGE_NAME|<< parameters.docker-image-name >>| \
+                g;s|BUILD_DATE_VALUE|$BUILD_DATE|g;s|VERSION_INFO_VALUE| \
+                << parameters.version-info >>|g" > deployment/app-deployment.yaml
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
           install-kubectl: true
-      - helm/install-helm-on-cluster:
-          enable-cluster-wide-admin-access: true
+          aws-region: << parameters.aws-region >>
+      - kubernetes/create-or-update-resource:
+          resource-file-path: "deployment/app-deployment.yaml"
+          get-rollout-status: true
+          resource-name: deployment/demoapp
+      - kubernetes/create-or-update-resource:
+          resource-file-path: "deployment/app-service.yaml"
 
 workflows:
   deployment:
     jobs:
-      - aws-eks/create-cluster:
-          cluster-name: test-cluster
-      - install-helm-on-cluster:
-          cluster-name: test-cluster
-          requires:
-            - aws-eks/create-cluster
-      - install-helm-chart:
-          cluster-name: test-cluster
-          requires:
-            - install-helm-on-cluster
-      - delete-helm-release:
-          cluster-name: test-cluster
-          requires:
-            - install-helm-chart
-      - aws-eks/delete-cluster:
-          cluster-name: test-cluster
-          requires:
-            - delete-helm-release
-          wait: true
+      - deploy-application:
+          cluster-name: EKS
+          aws-region: $AWS_DEFAULT_REGION
+          docker-image-name: "kevinluu10/node-web-app"
+          version-info: "${CIRCLE_SHA1}"
