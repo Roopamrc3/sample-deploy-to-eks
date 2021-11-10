@@ -88,12 +88,12 @@ workflows:
   deployment:
     jobs:
       - lint
-      # - build-and-push-image:
-      #     requires: [lint]
-      # - deploy-application:
-      #     cluster-name: EKS-Capstone
-      #     aws-region: $AWS_DEFAULT_REGION
-      #     docker-image-name: "${AWS_ECR_URL}/node-web-app:0.1.${CIRCLE_PREVIOUS_BUILD_NUM}"
-      #     version-info: "${CIRCLE_SHA1}"
-      #     requires: 
-      #       - build-and-push-image
+      - build-and-push-image:
+          requires: [lint]
+      - deploy-application:
+          cluster-name: EKS-Capstone
+          aws-region: $AWS_DEFAULT_REGION
+          docker-image-name: "${AWS_ECR_URL}/node-web-app:0.1.${CIRCLE_PREVIOUS_BUILD_NUM}"
+          version-info: "${CIRCLE_SHA1}"
+          requires: 
+            - build-and-push-image
