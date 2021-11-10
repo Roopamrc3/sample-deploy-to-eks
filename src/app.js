@@ -1,4 +1,5 @@
 const http = require('http');
+const notUsed = null;
 
 const requestListener = function (req, res) {
   res.writeHead(200);
