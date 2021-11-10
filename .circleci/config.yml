@@ -24,12 +24,11 @@ jobs:
           name: Build application Docker image
           command: |
             export IMAGE_NAME=node-web-app:0.1.${CIRCLE_BUILD_NUM}
-            echo "$DOCKER_PWD" | docker login --username $DOCKER_LOGIN --password-stdin
             cd src
-            docker build -t $DOCKER_LOGIN/$IMAGE_NAME
+            docker build -t ${AWS_ECR_URL}/${IMAGE_NAME} .
+            docker tag ${AWS_ECR_URL}/${IMAGE_NAME} "${AWS_ECR_URL}/${IMAGE_NAME}"
             login="$(aws ecr get-login)"
             ${login}
-            docker tag $DOCKER_LOGIN/$IMAGE_NAME "${AWS_ECR_URL}/${IMAGE_NAME}"
             docker push "${AWS_ECR_URL}/${IMAGE_NAME}"
 
   deploy-application:
