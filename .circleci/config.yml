@@ -51,7 +51,7 @@ workflows:
   deployment:
     jobs:
       - deploy-application:
-          cluster-name: EKS
+          cluster-name: EKS-Capstone
           aws-region: us-east-1
           docker-image-name: "kevinluu10/node-web-app:latest"
           version-info: "${CIRCLE_SHA1}"
