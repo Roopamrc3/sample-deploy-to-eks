@@ -76,10 +76,10 @@ workflows:
   deployment:
     jobs:
       - build-and-push-image
-      # - deploy-application:
-      #     cluster-name: EKS-Capstone
-      #     aws-region: $AWS_DEFAULT_REGION
-      #     docker-image-name: "${DOCKER_LOGIN}/node-web-app:0.1.${CIRCLE_BUILD_NUM}"
-      #     version-info: "${CIRCLE_SHA1}"
-      #     requires: 
-      #       - build-and-push-image
+      - deploy-application:
+          cluster-name: EKS-Capstone
+          aws-region: $AWS_DEFAULT_REGION
+          docker-image-name: "${DOCKER_LOGIN}/node-web-app:0.1.${CIRCLE_BUILD_NUM}"
+          version-info: "${CIRCLE_SHA1}"
+          requires: 
+            - build-and-push-image
