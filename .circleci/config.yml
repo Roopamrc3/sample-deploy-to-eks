@@ -12,7 +12,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run lint
+          name: Lint the code to enforce coding standards
           command: |
             cd src
             npm install
