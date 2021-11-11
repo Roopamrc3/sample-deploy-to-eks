@@ -1,13 +1,8 @@
-[![CircleCI](https://circleci.com/gh/kluu1/udacity-capstone/tree/main.svg?style=svg)](https://circleci.com/gh/kluu1/udacity-capstone/tree/main)
+# CI/CD Deploy to EKS
+Example code to deploy a Node.js application to EKS using CircleCI
 
-# Udacity Capstone Project
-Capstone project for Udacity DeveOps Engineer Nanodegree
-
-# Summary
-The goal of this project is to solidfy the understanding of DevOps practice and implement a CI/CD to deploy an application to a Kubernetes Cluster.
-
-# Pipeline plan
-- Lint to enforce coding standards
+# Pipeline steps
+- Run linter to enforce coding standards
 - Build docker image and push to ECR
 - Create or update deployment to EKS using Rolling Update Strategy
 
