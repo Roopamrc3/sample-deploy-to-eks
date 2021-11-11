@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/kluu1/udacity-capstone/tree/main.svg?style=svg)](https://circleci.com/gh/kluu1/udacity-capstone/tree/main)
+
 # Udacity Capstone Project
 Capstone project for Udacity DeveOps Engineer Nanodegree
 
